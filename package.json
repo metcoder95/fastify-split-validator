@@ -1,0 +1,41 @@
+{
+  "name": "t",
+  "version": "0.0.0",
+  "description": "Validate each HTTP body message part and Queryparams with different AJV schemas",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "scripts": {
+    "test": "tap --cov test/*.test.js && npm run typescript",
+    "test:ci": "tap --cov test/*.test.js && npm run typescript",
+    "test:only": "tap --only",
+    "test:unit": "tap test/*.test.js",
+    "lint": "standard | snazzy",
+    "lint-ci": "standard",
+    "typescript": "tsd"
+  },
+  "keywords": [
+    "fastify",
+    "ajv",
+    "validator",
+    "fastify-split-validator"
+  ],
+  "author": "MetCoder95 <carlos.fuentes.rios.95@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^14.17.6",
+    "fastify": "^3.21.6",
+    "husky": "^7.0.2",
+    "snazzy": "^9.0.0",
+    "standard": "^16.0.3",
+    "tap": "^15.0.10",
+    "tsd": "^0.17.0",
+    "typescript": "^4.4"
+  },
+  "dependencies": {
+    "ajv": "^8.6.3",
+    "fastify-plugin": "^3.0.0"
+  },
+  "tsd": {
+    "directory": "test"
+  }
+}
