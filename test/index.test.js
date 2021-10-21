@@ -113,7 +113,7 @@ test('Should allow custom AJV instance for body', async t => {
   }
 })
 
-test('Should allow custom AJV instance for params', { only: true } , async t => {
+test('Should allow custom AJV instance for params', async t => {
   t.plan(2)
   const customAjv = new AJV({ coerceTypes: false })
   const server = Fastify()
