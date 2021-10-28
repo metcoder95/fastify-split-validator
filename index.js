@@ -8,24 +8,17 @@ const ValidatorDictionary = require('./lib/dictionary')
 // TODO: allow AJV passed by the instance#register function
 // TODO: ts types
 function plugin (fastifyInstance, opts, done) {
+  let { defaultValidator } = opts
   // validation and more
-  const validatorInstance = new ValidatorDictionary()
-
-  // TODO: Make it work with the #bucket:
-  /**
-   * 1. Because is needed to resolve $ref statements
-   * 2. For do a fallback if not config.schemaBuilders is set
-   * 3. For each new instance, the parent schemas are passed and needs to be resolved
-   */
-
+  const dictionary = new ValidatorDictionary()
   fastifyInstance.addHook('onRoute', params => {
-    if (params.config && params.config.schemaBuilders) {
+    if (params.config?.schemaBuilders != null) {
       const { path, method, config } = params
       const builders = config.schemaBuilders
       const keys = Object.keys(builders)
 
       for (const key of keys) {
-        validatorInstance.addValidator(path, method, key, builders[key])
+        dictionary.addValidator(path, method, key, builders[key])
       }
     }
   })
@@ -34,16 +27,31 @@ function plugin (fastifyInstance, opts, done) {
     compilersFactory: {
       // TODO: Maybe the same for serializer?
       buildValidator: function (externalSchemas, ajvServerOptions) {
-        return function validatorCompiler ({ schema, method, url, httpPart }) {
-          // console.log(schema, method, url, httpPart) // #Debug
-          const validator = validatorInstance.getValidator(url, method, httpPart) ?? new Ajv(ajvServerOptions)
+        // We load schemas if any
+        const schemaIds =
+          externalSchemas != null ? Object.keys(externalSchemas) : []
+        defaultValidator = defaultValidator != null ? defaultValidator : new Ajv(ajvServerOptions)
 
-          // We load schemas if any
-          if (externalSchemas) {
-            for (const key of Object.keys(externalSchemas)) {
-              validator.addSchema(externalSchemas[key], key)
+        if (schemaIds.length > 0) {
+          const validators = dictionary.getValidators()
+
+          for (const schemaKey of schemaIds) {
+            for (const validator of validators) {
+              // Check if schema added or not
+              if (validator.getSchema(schemaKey) == null) {
+                validator.addSchema(externalSchemas[schemaKey], schemaKey)
+              }
+
+              if (defaultValidator.getSchema(schemaKey) == null) {
+                defaultValidator.addSchema(externalSchemas[schemaKey], schemaKey)
+              }
             }
           }
+        }
+
+        return function validatorCompiler ({ schema, method, url, httpPart }) {
+          const dictionaryValidator = dictionary.getValidator(url, method, httpPart)
+          const validator = dictionaryValidator == null ? dictionaryValidator : defaultValidator
 
           return validator.compile(schema)
         }
