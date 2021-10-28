@@ -7,14 +7,15 @@ const ValidatorDictionary = require('./lib/dictionary')
 // TODO: add default validator
 // TODO: allow AJV passed by the instance#register function
 // TODO: ts types
+// TODO: normalize query/querystring
 function plugin (fastifyInstance, opts, done) {
   let { defaultValidator } = opts
   // validation and more
   const dictionary = new ValidatorDictionary()
   fastifyInstance.addHook('onRoute', params => {
-    if (params.config?.schemaBuilders != null) {
+    if (params.config?.schemaValidators != null) {
       const { path, method, config } = params
-      const builders = config.schemaBuilders
+      const builders = config.schemaValidators
       const keys = Object.keys(builders)
 
       for (const key of keys) {

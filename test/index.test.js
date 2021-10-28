@@ -30,7 +30,7 @@ test('Should allow custom AJV instance for querystring', async t => {
         }
       },
       config: {
-        schemaBuilders: {
+        schemaValidators: {
           // TODO: normalize to query
           querystring: customAjv
         }
@@ -82,7 +82,7 @@ test('Should allow custom AJV instance for body', async t => {
         }
       },
       config: {
-        schemaBuilders: {
+        schemaValidators: {
           body: customAjv
         }
       }
@@ -130,7 +130,7 @@ test('Should allow custom AJV instance for params', async t => {
         }
       },
       config: {
-        schemaBuilders: {
+        schemaValidators: {
           params: customAjv
         }
       }
@@ -175,7 +175,7 @@ test('Should allow custom AJV instance for headers', async t => {
         }
       },
       config: {
-        schemaBuilders: {
+        schemaValidators: {
           headers: customAjv
         }
       }
@@ -239,7 +239,7 @@ test('Should work with referenced schemas (querystring)', async t => {
         }
       },
       config: {
-        schemaBuilders: {
+        schemaValidators: {
           querystring: customAjv
         }
       }
@@ -294,7 +294,7 @@ test('Should work with referenced schemas (params)', { only: true }, async t => 
         }
       },
       config: {
-        schemaBuilders: {
+        schemaValidators: {
           params: customAjv
         }
       }
@@ -342,7 +342,7 @@ test('Should work with referenced schemas (headers)', async t => {
         }
       },
       config: {
-        schemaBuilders: {
+        schemaValidators: {
           headers: customAjv
         }
       }
@@ -395,7 +395,7 @@ test('Should work with referenced schemas (body)', async t => {
         }
       },
       config: {
-        schemaBuilders: {
+        schemaValidators: {
           body: customAjv
         }
       }
@@ -450,7 +450,7 @@ test('Should work with parent schemas', async t => {
           }
         },
         config: {
-          schemaBuilders: {
+          schemaValidators: {
             body: customAjv
           }
         }
@@ -519,7 +519,7 @@ test('Should work with parent nested schemas', async t => {
             }
           },
           config: {
-            schemaBuilders: {
+            schemaValidators: {
               querystring: customAjv,
               headers: customAjv
             }
