@@ -3,6 +3,7 @@
 const tap = require('tap')
 const AJV = require('ajv')
 const Fastify = require('fastify')
+const proxyquire = require('proxyquire')
 const plugin = require('..')
 
 const test = tap.test
@@ -271,7 +272,7 @@ test('Should work with referenced schemas (querystring)', async t => {
   }
 })
 
-test('Should work with referenced schemas (params)', { only: true }, async t => {
+test('Should work with referenced schemas (params)', async t => {
   t.plan(2)
   const customAjv = new AJV({ coerceTypes: false })
   const server = Fastify()
@@ -423,6 +424,74 @@ test('Should work with referenced schemas (body)', async t => {
   }
 })
 
+test('Should work with parent and same instance schemas', { todo: true }, async t => {
+  t.plan(2)
+  const customAjv = new AJV({ coerceTypes: false })
+  const server = Fastify()
+
+  server.addSchema({
+    $id: 'some',
+    type: 'string'
+  })
+
+  server.register((instance, opts, done) => {
+    instance.addSchema({
+      $id: 'another',
+      type: 'string'
+    })
+
+    // #TODO: Another bug, schemas defined within the same
+    // encaptulated plugin are not being registered
+    instance.register(plugin, {})
+
+    instance.post(
+      '/',
+      {
+        schema: {
+          body: {
+            type: 'object',
+            properties: {
+              msg: {
+                $ref: 'some#'
+              },
+              another: {
+                $ref: 'another#'
+              }
+            }
+          }
+        },
+        config: {
+          schemaValidators: {
+            body: customAjv
+          }
+        }
+      },
+      (req, reply) => {
+        reply.send({ noop: 'noop' })
+      }
+    )
+
+    done()
+  })
+
+  try {
+    const res = await server.inject({
+      method: 'POST',
+      url: '/',
+      payload: {
+        msg: 1
+      }
+    })
+
+    const body = res.json()
+
+    t.equal(body.message, 'body must be string')
+    t.equal(res.statusCode, 400, 'Should not coearce the string into integer')
+  } catch (err) {
+    t.error(err)
+  }
+})
+
 test('Should work with parent schemas', async t => {
   t.plan(2)
   const customAjv = new AJV({ coerceTypes: false })
@@ -514,7 +583,7 @@ test('Should work with parent nested schemas', async t => {
             },
             headers: {
               'x-another': {
-                $ref: 'another#' // I cannot find #another schema
+                $ref: 'another#'
               }
             }
           },
@@ -558,6 +627,166 @@ test('Should work with parent nested schemas', async t => {
     t.equal(res1.statusCode, 400, 'Should not coearce the string into array')
     t.equal(res2.json().message, 'headers must be integer')
     t.equal(res2.statusCode, 400, 'Should not coearce the string into integer')
+  } catch (err) {
+    t.error(err)
+  }
+})
+
+test('Should handle parsing to querystring (query)', async t => {
+  t.plan(4)
+  const customAjv = new AJV({ coerceTypes: false })
+  const server = Fastify()
+
+  server.addSchema({
+    $id: 'some',
+    type: 'array',
+    items: {
+      type: 'string'
+    }
+  })
+
+  server.register((instance, opts, done) => {
+    instance.addSchema({
+      $id: 'another',
+      type: 'integer'
+    })
+
+    instance.register((subInstance, opts, innerDone) => {
+      subInstance.register(plugin, {})
+
+      subInstance.post(
+        '/',
+        {
+          schema: {
+            query: {
+              msg: {
+                $ref: 'some#'
+              }
+            },
+            headers: {
+              'x-another': {
+                $ref: 'another#'
+              }
+            }
+          },
+          config: {
+            schemaValidators: {
+              query: customAjv,
+              headers: customAjv
+            }
+          }
+        },
+        (req, reply) => {
+          reply.send({ noop: 'noop' })
+        }
+      )
+
+      innerDone()
+    })
+
+    done()
+  })
+
+  try {
+    const [res1, res2] = await Promise.all([
+      server.inject({
+        method: 'POST',
+        url: '/',
+        query: {
+          msg: ['string']
+        }
+      }),
+      server.inject({
+        method: 'POST',
+        url: '/',
+        headers: {
+          'x-another': '1'
+        }
+      })
+    ])
+
+    t.equal(res1.json().message, 'querystring must be array')
+    t.equal(res1.statusCode, 400, 'Should not coearce the string into array')
+    t.equal(res2.json().message, 'headers must be integer')
+    t.equal(res2.statusCode, 400, 'Should not coearce the string into integer')
+  } catch (err) {
+    t.error(err)
+  }
+})
+
+test('Should throw if not default validator passed', { todo: true }, async t => {
+  t.plan(4)
+  let compileCalled = false
+  const defaultAjv = new AJV({ coerceTypes: false })
+  const defaultCompile = defaultAjv.compile.bind(defaultAjv)
+
+  defaultAjv.compile = schema => {
+    compileCalled = true
+    return defaultCompile(schema)
+  }
+
+  const proxiedPlugin = proxyquire('..', {
+    ajv: class {
+      constructor () {
+        return defaultAjv
+      }
+    }
+  })
+
+  const server = Fastify()
+
+  server.addSchema({
+    $id: 'some',
+    type: 'array',
+    items: {
+      type: 'string'
+    }
+  })
+
+  server.register((instance, opts, done) => {
+    instance.addSchema({
+      $id: 'another',
+      type: 'integer'
+    })
+
+    instance.register(proxiedPlugin, {})
+
+    instance.post(
+      '/',
+      {
+        schema: {
+          query: {
+            msg: {
+              $ref: 'some#'
+            }
+          },
+          headers: {
+            'x-another': {
+              $ref: 'another#'
+            }
+          }
+        }
+      },
+      (req, reply) => {
+        reply.send({ noop: 'noop' })
+      }
+    )
+
+    done()
+  })
+
+  try {
+    const res = await server.inject({
+      method: 'POST',
+      url: '/',
+      query: {
+        msg: ['string']
+      }
+    })
+
+    t.equal(res.json().message, 'querystring must be array')
+    t.equal(res.statusCode, 400, 'Should not coearce the string into array')
+    t.ok(compileCalled, 'Should have called the default Ajv instance')
   } catch (err) {
     t.error(err)
   }
