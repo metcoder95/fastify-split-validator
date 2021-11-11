@@ -41,5 +41,11 @@
   },
   "tap": {
     "check-coverage": false
+  },
+  "standard": {
+    "ignore": [
+      "*.d.ts",
+      "*.test-d.ts"
+    ]
   }
 }
