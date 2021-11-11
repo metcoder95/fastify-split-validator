@@ -3,20 +3,16 @@
 const fp = require('fastify-plugin')
 const Ajv = require('ajv')
 const ValidatorDictionary = require('./lib/dictionary')
-
-// TODO: add default validator
-// TODO: allow AJV passed by the instance#register function
-// TODO: ts types
-// TODO: normalize query/querystring
-function plugin (fastifyInstance, opts, done) {
+function plugin (fastifyInstance, opts = {}, done) {
   let { defaultValidator } = opts
+
   // validation and more
   const dictionary = new ValidatorDictionary()
   fastifyInstance.addHook('onRoute', params => {
     if (params.config?.schemaValidators != null) {
       const { path, method, config } = params
-      const builders = config.schemaValidators
-      const keys = Object.keys(builders)
+      const compilers = config.schemaValidators
+      const keys = Object.keys(compilers)
 
       for (const key of keys) {
         dictionary.addValidator(path, method, key, builders[key])
@@ -31,28 +27,36 @@ function plugin (fastifyInstance, opts, done) {
         // We load schemas if any
         const schemaIds =
           externalSchemas != null ? Object.keys(externalSchemas) : []
-        defaultValidator = defaultValidator != null ? defaultValidator : new Ajv(ajvServerOptions)
+        defaultValidator = defaultValidator ?? new Ajv(ajvServerOptions)
 
         if (schemaIds.length > 0) {
           const validators = dictionary.getValidators()
 
           for (const schemaKey of schemaIds) {
+            const schema = externalSchemas[schemaKey]
             for (const validator of validators) {
-              // Check if schema added or not
+              // Check if schema added or not for custom validators
               if (validator.getSchema(schemaKey) == null) {
-                validator.addSchema(externalSchemas[schemaKey], schemaKey)
+                validator.addSchema(schema, schemaKey)
               }
+            }
 
-              if (defaultValidator.getSchema(schemaKey) == null) {
-                defaultValidator.addSchema(externalSchemas[schemaKey], schemaKey)
-              }
+            // Also add it to default validator as fallback
+            if (defaultValidator.getSchema(schemaKey) == null) {
+              console.log('adding to default validator', schemaKey)
+              defaultValidator.addSchema(schema, schemaKey)
             }
           }
         }
 
         return function validatorCompiler ({ schema, method, url, httpPart }) {
-          const dictionaryValidator = dictionary.getValidator(url, method, httpPart)
-          const validator = dictionaryValidator == null ? dictionaryValidator : defaultValidator
+          const httpPartValidator = dictionary.getValidator(
+            url,
+            method,
+            httpPart
+          )
+          const validator =
+            httpPartValidator == null ? defaultValidator : httpPartValidator
 
           return validator.compile(schema)
         }
@@ -64,5 +68,6 @@ function plugin (fastifyInstance, opts, done) {
 }
 
 module.exports = fp(plugin, {
-  fastify: '>=3.21.0'
+  fastify: '>=3.23.1',
+  name: 'fastify-split-validator'
 })
