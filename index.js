@@ -15,7 +15,13 @@ function plugin (fastifyInstance, opts = {}, done) {
       const keys = Object.keys(compilers)
 
       for (const key of keys) {
-        dictionary.addValidator(path, method, key, builders[key])
+        dictionary.addValidator(
+          path,
+          method,
+          // If query passed, we should change it to querystring
+          key === 'query' ? 'querystring' : key,
+          compilers[key]
+        )
       }
     }
   })
