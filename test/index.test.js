@@ -8,7 +8,7 @@ const plugin = require('..')
 
 const test = tap.test
 
-// tap.plan(2)
+tap.plan(15)
 
 test('Should allow custom AJV instance for querystring', async t => {
   t.plan(1)
@@ -424,7 +424,7 @@ test('Should work with referenced schemas (body)', async t => {
   }
 })
 
-test('Should work with parent and same instance schemas', { todo: true }, async t => {
+test('Should work with parent and same instance schemas', async t => {
   t.plan(2)
   const customAjv = new AJV({ coerceTypes: false })
   const server = Fastify()
@@ -714,8 +714,8 @@ test('Should handle parsing to querystring (query)', async t => {
   }
 })
 
-test('Should throw if not default validator passed', { todo: true }, async t => {
-  t.plan(4)
+test('Should use default plugin validator as fallback', async t => {
+  t.plan(3)
   let compileCalled = false
   const defaultAjv = new AJV({ coerceTypes: false })
   const defaultCompile = defaultAjv.compile.bind(defaultAjv)
@@ -750,6 +750,170 @@ test('Should throw if not default validator passed', { todo: true }, async t => 
     })
 
     instance.register(proxiedPlugin, {})
+
+    instance.post(
+      '/',
+      {
+        schema: {
+          query: {
+            msg: {
+              $ref: 'some#'
+            }
+          },
+          headers: {
+            'x-another': {
+              $ref: 'another#'
+            }
+          }
+        }
+      },
+      (req, reply) => {
+        reply.send({ noop: 'noop' })
+      }
+    )
+
+    done()
+  })
+
+  try {
+    const res = await server.inject({
+      method: 'POST',
+      url: '/',
+      query: {
+        msg: ['string']
+      }
+    })
+
+    t.equal(res.json().message, 'querystring must be array')
+    t.equal(res.statusCode, 400, 'Should not coearce the string into array')
+    t.ok(compileCalled, 'Should have called the default Ajv instance')
+  } catch (err) {
+    t.error(err)
+  }
+})
+
+test('Should always cache schema to default plugin validator', async t => {
+  t.plan(4)
+  let compileCalled = false
+  let customCompileCalled = false
+  const defaultAjv = new AJV({ coerceTypes: false })
+  const headerAjv = new AJV({ coerceTypes: false })
+  const defaultCompile = defaultAjv.compile.bind(defaultAjv)
+  const headerDefaultCompile = headerAjv.compile.bind(headerAjv)
+
+  defaultAjv.compile = schema => {
+    compileCalled = true
+    return defaultCompile(schema)
+  }
+
+  headerAjv.compile = schema => {
+    customCompileCalled = true
+    return headerDefaultCompile(schema)
+  }
+
+  const proxiedPlugin = proxyquire('..', {
+    ajv: class {
+      constructor () {
+        return defaultAjv
+      }
+    }
+  })
+
+  const server = Fastify()
+
+  server.addSchema({
+    $id: 'some',
+    type: 'array',
+    items: {
+      type: 'string'
+    }
+  })
+
+  server.register((instance, opts, done) => {
+    instance.addSchema({
+      $id: 'another',
+      type: 'integer'
+    })
+
+    instance.register(proxiedPlugin, {})
+
+    instance.post(
+      '/',
+      {
+        schema: {
+          query: {
+            msg: {
+              $ref: 'some#'
+            }
+          },
+          headers: {
+            'x-another': {
+              $ref: 'another#'
+            }
+          }
+        },
+        config: {
+          schemaValidators: {
+            headers: headerAjv
+          }
+        }
+      },
+      (req, reply) => {
+        reply.send({ noop: 'noop' })
+      }
+    )
+
+    done()
+  })
+
+  try {
+    const res = await server.inject({
+      method: 'POST',
+      url: '/',
+      query: {
+        msg: ['string']
+      }
+    })
+
+    t.equal(res.json().message, 'querystring must be array')
+    t.equal(res.statusCode, 400, 'Should not coearce the string into array')
+    t.ok(compileCalled, 'Should have called the default Ajv instance')
+    t.ok(customCompileCalled, 'Should have called the custom Ajv instance')
+  } catch (err) {
+    t.error(err)
+  }
+})
+
+test('Should use default provided validator as fallback', async t => {
+  t.plan(3)
+  let compileCalled = false
+  const defaultAjv = new AJV({ coerceTypes: false })
+  const defaultCompile = defaultAjv.compile.bind(defaultAjv)
+
+  defaultAjv.compile = schema => {
+    compileCalled = true
+    return defaultCompile(schema)
+  }
+
+  const server = Fastify()
+
+  server.addSchema({
+    $id: 'some',
+    type: 'array',
+    items: {
+      type: 'string'
+    }
+  })
+
+  server.register((instance, opts, done) => {
+    instance.addSchema({
+      $id: 'another',
+      type: 'integer'
+    })
+
+    instance.register(plugin, {
+      defaultValidator: defaultAjv
+    })
 
     instance.post(
       '/',
