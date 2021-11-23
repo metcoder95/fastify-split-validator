@@ -61,10 +61,14 @@ function plugin (fastifyInstance, opts = {}, done) {
             method,
             httpPart
           )
-          const validator =
-            httpPartValidator == null ? defaultValidator : httpPartValidator
+          // We compile for cache all schemas for performance
+          const fallback = defaultValidator.compile(schema)
 
-          return validator.compile(schema)
+          if (httpPartValidator == null) {
+            return fallback
+          }
+
+          return httpPartValidator.compile(schema)
         }
       }
     }
