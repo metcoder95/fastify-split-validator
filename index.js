@@ -78,6 +78,6 @@ function plugin (fastifyInstance, opts = {}, done) {
 }
 
 module.exports = fp(plugin, {
-  fastify: '>=3.23.1',
+  fastify: '>=3.24.1',
   name: 'fastify-split-validator'
 })
