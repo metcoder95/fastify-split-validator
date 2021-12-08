@@ -10,7 +10,7 @@
     "test:only": "tap --only",
     "test:unit": "tap test/*.test.js",
     "lint": "standard | snazzy",
-    "lint-ci": "standard",
+    "lint:ci": "standard",
     "typescript": "tsd"
   },
   "keywords": [
@@ -23,7 +23,7 @@
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^14.17.6",
-    "fastify": "fastify/fastify#main",
+    "fastify": "^3.24.1",
     "husky": "^7.0.2",
     "proxyquire": "^2.1.3",
     "snazzy": "^9.0.0",
