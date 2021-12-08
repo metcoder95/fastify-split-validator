@@ -49,7 +49,6 @@ function plugin (fastifyInstance, opts = {}, done) {
 
             // Also add it to default validator as fallback
             if (defaultValidator.getSchema(schemaKey) == null) {
-              console.log('adding to default validator', schemaKey)
               defaultValidator.addSchema(schema, schemaKey)
             }
           }
