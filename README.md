@@ -1,8 +1,6 @@
 # fastify-split-validator
 
-[![CI](https://github.com/MetCoder95/fastify-split-validator/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/MetCoder95/fastify-split-validator/actions/workflows/ci.yml)
-
-[![CodeQL](https://github.com/MetCoder95/fastify-split-validator/actions/workflows/codeql-analysis.yml/badge.svg?branch=main)](https://github.com/MetCoder95/fastify-split-validator/actions/workflows/codeql-analysis.yml)
+[![CI](https://github.com/MetCoder95/fastify-split-validator/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/MetCoder95/fastify-split-validator/actions/workflows/ci.yml) [![CodeQL](https://github.com/MetCoder95/fastify-split-validator/actions/workflows/codeql-analysis.yml/badge.svg?branch=main)](https://github.com/MetCoder95/fastify-split-validator/actions/workflows/codeql-analysis.yml)
 
 ---
 
