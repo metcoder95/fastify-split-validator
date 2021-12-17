@@ -19,6 +19,13 @@
     "validator",
     "fastify-split-validator"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MetCoder94/fastify-split-validator.git"
+  },
+  "bugs": {
+    "url": "https://github.com/MetCoder95/fastify-split-validator/issues"
+  },
   "author": "MetCoder95 <carlos.fuentes.rios.95@gmail.com>",
   "license": "MIT",
   "devDependencies": {
