@@ -21,8 +21,9 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/MetCoder94/fastify-split-validator.git"
+    "url": "git+https://github.com/MetCoder95/fastify-split-validator.git"
   },
+  "readme": "https://github.com/MetCoder95/fastify-split-validator/blob/main/README.md",
   "bugs": {
     "url": "https://github.com/MetCoder95/fastify-split-validator/issues"
   },
