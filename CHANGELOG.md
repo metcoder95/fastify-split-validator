@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.0.2](https://github.com/MetCoder95/fastify-split-validator/compare/v1.0.1...v1.0.2) (2021-12-21)
+
+
+### Bug Fixes
+
+* package metadata ([1dbcc27](https://github.com/MetCoder95/fastify-split-validator/commit/1dbcc2728c46365ed1ff0e9bdfd461331b00ec13))
+
 ### [1.0.1](https://github.com/MetCoder94/fastify-split-validator/compare/v1.0.0...v1.0.1) (2021-12-17)
 
 ## 1.0.0 (2021-12-15)
