@@ -59,7 +59,7 @@ const validator = new Ajv({});
 const bodyValidator = new Ajv({});
 const headersValidator = new Ajv({});
 
-app.register(splitValidator, { defaultValidator: validator });
+await app.register(splitValidator, { defaultValidator: validator });
 
 app.post('/', {
   config: {
@@ -84,7 +84,7 @@ const validator = new Ajv({});
 const bodyValidator = new Ajv({});
 const headersValidator = new Ajv({});
 
-app.register(splitValidator, { defaultValidator: validator });
+await app.register(splitValidator, { defaultValidator: validator });
 
 app.post('/', {
   config: {
