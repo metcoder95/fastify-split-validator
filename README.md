@@ -28,8 +28,15 @@ const Ajv = require('ajv');
 const app = fastify();
 const validator = new Ajv({});
 
-app.register(splitValidator, { defaultValidator: validator });
+await app.register(splitValidator, { defaultValidator: validator });
 ```
+
+>**Note**:
+> It is important to advice that with the new fastify@v4, all the route registration now happens asynchronously.
+> This change translates in a way that if any plugin is meant to set logic into the `onRoute` hook for manipulating
+> routes after registration, it is necessary to await until the plugin is fully loaded before proceeding with the next parts
+> of your route definition. Otherwise, this can lead to non-deterministic behaviours when the plugin will not the expected
+> effect on your fastify application.
 
 **On Route**
 
