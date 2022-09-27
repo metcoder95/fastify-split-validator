@@ -102,7 +102,7 @@ test('Should allow custom AJV instance for body', async t => {
 
     const body = res.json()
 
-    t.equal(body.message, 'body must be array')
+    t.equal(body.message, 'body/msg must be array')
     t.equal(
       res.statusCode,
       400,
@@ -147,7 +147,7 @@ test('Should allow custom AJV instance for params', async t => {
 
     const body = res.json()
 
-    t.equal(body.message, 'params must be integer')
+    t.equal(body.message, 'params/msg must be integer')
     t.equal(
       res.statusCode,
       400,
@@ -198,7 +198,7 @@ test('Should allow custom AJV instance for headers', async t => {
     // TODO: set into documentation that it's possible the
     // error formatter doesn't work as expected.
     // Custom one should be provided
-    t.equal(body.message, 'headers must be integer')
+    t.equal(body.message, 'headers/x-type must be integer')
     t.equal(
       res.statusCode,
       400,
@@ -261,7 +261,7 @@ test('Should work with referenced schemas (querystring)', async t => {
 
     const body = res.json()
 
-    t.equal(body.message, 'querystring must be array')
+    t.equal(body.message, 'querystring/msg must be array')
     t.equal(
       res.statusCode,
       400,
@@ -313,7 +313,7 @@ test('Should work with referenced schemas (params)', async t => {
 
     const body = res.json()
 
-    t.equal(body.message, 'params must be integer')
+    t.equal(body.message, 'params/id must be integer')
     t.equal(res.statusCode, 400, 'Should not coearce the string into integer')
   } catch (err) {
     t.error(err)
@@ -364,7 +364,7 @@ test('Should work with referenced schemas (headers)', async t => {
 
     const body = res.json()
 
-    t.equal(body.message, 'headers must be integer')
+    t.equal(body.message, 'headers/x-id must be integer')
     t.equal(res.statusCode, 400, 'Should not coearce the string into integer')
   } catch (err) {
     t.error(err)
@@ -417,7 +417,7 @@ test('Should work with referenced schemas (body)', async t => {
 
     const body = res.json()
 
-    t.equal(body.message, 'body must be string')
+    t.equal(body.message, 'body/msg must be string')
     t.equal(res.statusCode, 400, 'Should not coearce the string into integer')
   } catch (err) {
     t.error(err)
@@ -485,7 +485,7 @@ test('Should work with parent and same instance schemas', async t => {
 
     const body = res.json()
 
-    t.equal(body.message, 'body must be string')
+    t.equal(body.message, 'body/msg must be string')
     t.equal(res.statusCode, 400, 'Should not coearce the string into integer')
   } catch (err) {
     t.error(err)
@@ -543,7 +543,7 @@ test('Should work with parent schemas', async t => {
 
     const body = res.json()
 
-    t.equal(body.message, 'body must be string')
+    t.equal(body.message, 'body/msg must be string')
     t.equal(res.statusCode, 400, 'Should not coearce the string into integer')
   } catch (err) {
     t.error(err)
@@ -623,9 +623,9 @@ test('Should work with parent nested schemas', async t => {
       })
     ])
 
-    t.equal(res1.json().message, 'querystring must be array')
+    t.equal(res1.json().message, 'querystring/msg must be array')
     t.equal(res1.statusCode, 400, 'Should not coearce the string into array')
-    t.equal(res2.json().message, 'headers must be integer')
+    t.equal(res2.json().message, 'headers/x-another must be integer')
     t.equal(res2.statusCode, 400, 'Should not coearce the string into integer')
   } catch (err) {
     t.error(err)
@@ -705,9 +705,9 @@ test('Should handle parsing to querystring (query)', async t => {
       })
     ])
 
-    t.equal(res1.json().message, 'querystring must be array')
+    t.equal(res1.json().message, 'querystring/msg must be array')
     t.equal(res1.statusCode, 400, 'Should not coearce the string into array')
-    t.equal(res2.json().message, 'headers must be integer')
+    t.equal(res2.json().message, 'headers/x-another must be integer')
     t.equal(res2.statusCode, 400, 'Should not coearce the string into integer')
   } catch (err) {
     t.error(err)
@@ -784,7 +784,7 @@ test('Should use default plugin validator as fallback', async t => {
       }
     })
 
-    t.equal(res.json().message, 'querystring must be array')
+    t.equal(res.json().message, 'querystring/msg must be array')
     t.equal(res.statusCode, 400, 'Should not coearce the string into array')
     t.ok(compileCalled, 'Should have called the default Ajv instance')
   } catch (err) {
@@ -807,6 +807,7 @@ test('Should always cache schema to default plugin validator', async t => {
   }
 
   headerAjv.compile = schema => {
+    console.log('called')
     customCompileCalled = true
     return headerDefaultCompile(schema)
   }
@@ -829,13 +830,13 @@ test('Should always cache schema to default plugin validator', async t => {
     }
   })
 
-  server.register((instance, opts, done) => {
+  server.register(async (instance, opts, done) => {
     instance.addSchema({
       $id: 'another',
       type: 'integer'
     })
 
-    instance.register(proxiedPlugin, {})
+    await instance.register(proxiedPlugin, {})
 
     instance.post(
       '/',
@@ -862,8 +863,6 @@ test('Should always cache schema to default plugin validator', async t => {
         reply.send({ noop: 'noop' })
       }
     )
-
-    done()
   })
 
   try {
@@ -872,10 +871,13 @@ test('Should always cache schema to default plugin validator', async t => {
       url: '/',
       query: {
         msg: ['string']
+      },
+      headers: {
+        'x-another': 1
       }
     })
 
-    t.equal(res.json().message, 'querystring must be array')
+    t.equal(res.json().message, 'querystring/msg must be array')
     t.equal(res.statusCode, 400, 'Should not coearce the string into array')
     t.ok(compileCalled, 'Should have called the default Ajv instance')
     t.ok(customCompileCalled, 'Should have called the custom Ajv instance')
@@ -948,7 +950,7 @@ test('Should use default provided validator as fallback', async t => {
       }
     })
 
-    t.equal(res.json().message, 'querystring must be array')
+    t.equal(res.json().message, 'querystring/msg must be array')
     t.equal(res.statusCode, 400, 'Should not coearce the string into array')
     t.ok(compileCalled, 'Should have called the default Ajv instance')
   } catch (err) {
