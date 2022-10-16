@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.0.0](https://github.com/MetCoder95/fastify-split-validator/compare/v1.0.2...v2.0.0) (2022-10-16)
+
+
+### ⚠ BREAKING CHANGES
+
+* v2 (#3)
+
+### Features
+
+* v2 ([#3](https://github.com/MetCoder95/fastify-split-validator/issues/3)) ([10bf649](https://github.com/MetCoder95/fastify-split-validator/commit/10bf64987730eca37de6d0eb8ff50d6eae9335ec))
+
+
+### Bug Fixes
+
+* fix for automatic HEAD routes ([#2](https://github.com/MetCoder95/fastify-split-validator/issues/2)) ([eb14b76](https://github.com/MetCoder95/fastify-split-validator/commit/eb14b76d766f17ea955251b858c2ab2aa35a977b))
+
 ### [1.0.2](https://github.com/MetCoder95/fastify-split-validator/compare/v1.0.1...v1.0.2) (2021-12-21)
 
 
