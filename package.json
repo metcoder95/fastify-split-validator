@@ -11,7 +11,8 @@
     "test:unit": "tap test/*.test.js",
     "lint": "standard | snazzy",
     "lint:ci": "standard",
-    "typescript": "tsd"
+    "typescript": "tsd",
+    "release": "npx standard-version"
   },
   "keywords": [
     "fastify",
