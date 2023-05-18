@@ -1,6 +1,6 @@
 {
   "name": "fastify-split-validator",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "Validate each HTTP body message part and Queryparams with different AJV schemas",
   "main": "index.js",
   "types": "index.d.ts",

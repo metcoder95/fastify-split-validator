@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.0.0](https://github.com/MetCoder95/fastify-split-validator/compare/v2.0.0...v3.0.0) (2023-05-18)
+
+
+### ⚠ BREAKING CHANGES
+
+* drop support for Node v14
+
+### Features
+
+* drop support for Node v14 ([1dbd938](https://github.com/MetCoder95/fastify-split-validator/commit/1dbd938b39e0e6bd53e87033fd235b81c8cab925))
+
 ## [2.0.0](https://github.com/MetCoder95/fastify-split-validator/compare/v1.0.2...v2.0.0) (2022-10-16)
 
 
