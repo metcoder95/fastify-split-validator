@@ -1,18 +1,57 @@
+on:
+  push:
+    branches:
+     - current
+     - next
+     - 'v*'
+  pull_request:
+
 name: CI
-on: [push, pull_request]
 
 jobs:
-  build:
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node: [16.x, 18.x, 20.x]
-    name: Node ${{ matrix.node }}
     steps:
       - uses: actions/checkout@v4
       - name: Setup node
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node }}
-      - run: npm install
-      - run: npm run test:ci
+          node-version: v20.x
+      - name: Install dependencies
+        run: npm install
+      - name: Check linting
+        run: npm run lint:ci
+
+  tests:
+    needs: [lint]
+    name: Tests
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        node-version: [18.x, 20.x, 21.x]
+    runs-on: ${{matrix.os}}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - uses: actions/cache@v3
+        id: check-cache
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('**/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-${{ matrix.node-version }}-
+
+      - name: Install Dependencies
+        run: npm install
+      - name: Run Tests
+        run: npm run test:ci
+
