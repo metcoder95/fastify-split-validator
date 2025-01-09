@@ -5,59 +5,67 @@ const AJV = require('ajv')
 const Fastify = require('fastify')
 const proxyquire = require('proxyquire')
 const plugin = require('..')
+const { type } = require('os')
 
 const test = tap.test
 
 tap.plan(15)
 
-test('Should allow custom AJV instance for querystring', async t => {
-  t.plan(1)
-  const customAjv = new AJV({ coerceTypes: false })
-  const server = Fastify()
+test(
+  'Should allow custom AJV instance for querystring',
+  { only: true },
+  async t => {
+    t.plan(1)
+    const customAjv = new AJV({ coerceTypes: false })
+    const server = Fastify()
 
-  server.register(plugin, {})
+    server.register(plugin, {})
 
-  server.get(
-    '/',
-    {
-      schema: {
-        querystring: {
-          msg: {
-            type: 'array',
-            items: {
-              type: 'string'
+    server.get(
+      '/',
+      {
+        schema: {
+          querystring: {
+            type: 'object',
+            properties: {
+              msg: {
+                type: 'array',
+                items: {
+                  type: 'string'
+                }
+              }
             }
+          }
+        },
+        config: {
+          schemaValidators: {
+            // TODO: normalize to query
+            querystring: customAjv
           }
         }
       },
-      config: {
-        schemaValidators: {
-          // TODO: normalize to query
-          querystring: customAjv
-        }
-      }
-    },
-    (req, reply) => {}
-  )
-
-  try {
-    const res = await server.inject({
-      method: 'GET',
-      url: '/',
-      query: {
-        msg: ['hello world']
-      }
-    })
-
-    t.equal(
-      res.statusCode,
-      400,
-      'Should coerce the single element array into string'
+      (req, reply) => {}
     )
-  } catch (err) {
-    t.error(err)
+
+    try {
+      const res = await server.inject({
+        method: 'GET',
+        url: '/',
+        query: {
+          msg: ['hello world']
+        }
+      })
+
+      t.equal(
+        res.statusCode,
+        400,
+        'Should coerce the single element array into string'
+      )
+    } catch (err) {
+      t.error(err)
+    }
   }
-})
+)
 
 test('Should allow custom AJV instance for body', async t => {
   t.plan(2)
@@ -125,8 +133,11 @@ test('Should allow custom AJV instance for params', async t => {
     {
       schema: {
         params: {
-          msg: {
-            type: 'integer'
+          type: 'object',
+          properties: {
+            msg: {
+              type: 'integer'
+            }
           }
         }
       },
@@ -170,8 +181,11 @@ test('Should allow custom AJV instance for headers', async t => {
     {
       schema: {
         headers: {
-          'x-type': {
-            type: 'integer'
+          type: 'object',
+          properties: {
+            'x-type': {
+              type: 'integer'
+            }
           }
         }
       },
@@ -234,8 +248,11 @@ test('Should work with referenced schemas (querystring)', async t => {
     {
       schema: {
         query: {
-          msg: {
-            $ref: 'some#'
+          type: 'object',
+          properties: {
+            msg: {
+              $ref: 'some#'
+            }
           }
         }
       },
@@ -289,8 +306,11 @@ test('Should work with referenced schemas (params)', async t => {
     {
       schema: {
         params: {
-          id: {
-            $ref: 'some#'
+          type: 'object',
+          properties: {
+            id: {
+              $ref: 'some#'
+            }
           }
         }
       },
@@ -337,8 +357,11 @@ test('Should work with referenced schemas (headers)', async t => {
     {
       schema: {
         headers: {
-          'x-id': {
-            $ref: 'some#'
+          type: 'object',
+          properties: {
+            'x-id': {
+              $ref: 'some#'
+            }
           }
         }
       },
@@ -577,13 +600,19 @@ test('Should work with parent nested schemas', async t => {
         {
           schema: {
             querystring: {
-              msg: {
-                $ref: 'some#'
+              type: 'object',
+              properties: {
+                msg: {
+                  $ref: 'some#'
+                }
               }
             },
             headers: {
-              'x-another': {
-                $ref: 'another#'
+              type: 'object',
+              properties: {
+                'x-another': {
+                  $ref: 'another#'
+                }
               }
             }
           },
@@ -659,13 +688,19 @@ test('Should handle parsing to querystring (query)', async t => {
         {
           schema: {
             query: {
-              msg: {
-                $ref: 'some#'
+              type: 'object',
+              properties: {
+                msg: {
+                  $ref: 'some#'
+                }
               }
             },
             headers: {
-              'x-another': {
-                $ref: 'another#'
+              type: 'object',
+              properties: {
+                'x-another': {
+                  $ref: 'another#'
+                }
               }
             }
           },
@@ -756,13 +791,19 @@ test('Should use default plugin validator as fallback', async t => {
       {
         schema: {
           query: {
-            msg: {
-              $ref: 'some#'
+            type: 'object',
+            properties: {
+              msg: {
+                $ref: 'some#'
+              }
             }
           },
           headers: {
-            'x-another': {
-              $ref: 'another#'
+            type: 'object',
+            properties: {
+              'x-another': {
+                $ref: 'another#'
+              }
             }
           }
         }
@@ -830,7 +871,7 @@ test('Should always cache schema to default plugin validator', async t => {
     }
   })
 
-  server.register(async (instance, opts, done) => {
+  server.register(async (instance, opts) => {
     instance.addSchema({
       $id: 'another',
       type: 'integer'
@@ -843,13 +884,19 @@ test('Should always cache schema to default plugin validator', async t => {
       {
         schema: {
           query: {
-            msg: {
-              $ref: 'some#'
+            type: 'object',
+            properties: {
+              msg: {
+                $ref: 'some#'
+              }
             }
           },
           headers: {
-            'x-another': {
-              $ref: 'another#'
+            type: 'object',
+            properties: {
+              'x-another': {
+                $ref: 'another#'
+              }
             }
           }
         },
@@ -922,13 +969,19 @@ test('Should use default provided validator as fallback', async t => {
       {
         schema: {
           query: {
-            msg: {
-              $ref: 'some#'
+            type: 'object',
+            properties: {
+              msg: {
+                $ref: 'some#'
+              }
             }
           },
           headers: {
-            'x-another': {
-              $ref: 'another#'
+            type: 'object',
+            properties: {
+              'x-another': {
+                $ref: 'another#'
+              }
             }
           }
         }
