@@ -5,7 +5,6 @@ const AJV = require('ajv')
 const Fastify = require('fastify')
 const proxyquire = require('proxyquire')
 const plugin = require('..')
-const { type } = require('os')
 
 const test = tap.test
 
