@@ -34,7 +34,7 @@
   "author": "MetCoder95 <carlos.fuentes.rios.95@gmail.com>",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "^22.0.0",
+    "@types/node": "^24.0.10",
     "fastify": "^5.2.1",
     "husky": "^9.0.11",
     "proxyquire": "^2.1.3",
