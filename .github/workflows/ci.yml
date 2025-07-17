@@ -7,7 +7,7 @@ on:
   pull_request:
     paths-ignore:
       - LICENSE
-      - *.md
+      - '*.md'
 
 name: CI
 
